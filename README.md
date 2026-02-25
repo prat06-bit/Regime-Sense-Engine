@@ -6,7 +6,7 @@ Instead of assuming the market behaves the same way all the time, this project d
 
 The application includes an interactive Streamlit dashboard where users can upload data or generate synthetic market data to explore regime detection.
 
----
+
 
 ## Overview
 
@@ -17,7 +17,6 @@ This project:
 * Uses machine learning to group data into different market regimes
 * Displays results using charts and tables
 
----
 
 ## Models Used
 
@@ -33,7 +32,7 @@ This project:
 * Serves as a simple baseline model
 * Helps compare results with HMM
 
----
+
 
 ## Features
 
@@ -42,7 +41,7 @@ This project:
 
 These features help the model understand price movement and risk.
 
----
+
 
 ## Data Options
 
