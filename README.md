@@ -1,51 +1,57 @@
-Regime Sense Engine
+# Regime Sense Engine
 
-Regime Sense Engine is a beginner-friendly machine learning project that helps identify different market conditions (regimes) from price data.
+Regime Sense Engine is a beginner-level machine learning project that identifies different market conditions (regimes) from price data.
 
 Instead of assuming the market behaves the same way all the time, this project detects patterns such as stable periods, volatile phases, and trending movements using simple statistical features and unsupervised learning models.
 
-The application includes an interactive Streamlit dashboard where users can upload data or generate synthetic market data to explore how regime detection works.
+The application includes an interactive Streamlit dashboard where users can upload data or generate synthetic market data to explore regime detection.
 
-What This Project Does
+---
 
-Reads price data (date and closing price)
+## Overview
 
-Calculates basic financial features like returns and volatility
+This project:
 
-Uses machine learning to group data into different market regimes
+* Reads price data (date and closing price)
+* Calculates financial features like returns and volatility
+* Uses machine learning to group data into different market regimes
+* Displays results using charts and tables
 
-Displays results using simple charts and tables
+---
 
-This project is designed for learning purposes and for beginners who want to understand how AI can be applied to financial time series.
+## Models Used
 
-Models Used
-🔹 Hidden Markov Model (HMM)
+### Hidden Markov Model (HMM)
 
-Finds hidden market states over time
+* Detects hidden market states over time
+* Shows probability of each regime
+* Displays regime transitions
 
-Shows probabilities of each regime
+### KMeans Clustering
 
-Displays how regimes change from one state to another
+* Groups similar market conditions
+* Serves as a simple baseline model
+* Helps compare results with HMM
 
-🔹 KMeans Clustering
+---
 
-Groups similar data points together
+## Features
 
-Beginner-friendly baseline model
+* Log Returns
+* Rolling Volatility
 
-Helps compare results with HMM
+These features help the model understand price movement and risk.
 
-Features Used
+---
 
-The model uses simple statistical features:
+## Data Options
 
-Log Returns — daily price changes
+You can:
 
-Rolling Volatility — how risky the market is over time
- Data Options
+* Upload your own CSV file with `date` and `close` columns
+* Generate synthetic market data inside the application
 
-You can choose between:
 
-Uploading your own CSV file (date, close)
 
-Generating synthetic market data inside the app
+
+
