@@ -178,92 +178,257 @@ def run_cli() -> None:
 
 # ── Streamlit UI ──────────────────────────────────────────────────────────────
 
+HERO_CSS = """
+<style>
+/* ── Global ── */
+[data-testid="stAppViewContainer"] { background: #0d1117; }
+[data-testid="stSidebar"] { background: #161b22; border-right: 1px solid #30363d; }
+
+/* ── Hero banner ── */
+.hero {
+    background: linear-gradient(135deg, #0f2027, #1a3a4a, #0f2027);
+    border: 1px solid #30363d;
+    border-radius: 16px;
+    padding: 2.5rem 2.8rem;
+    margin-bottom: 1.8rem;
+}
+.hero h1 {
+    font-size: 2.4rem;
+    font-weight: 800;
+    background: linear-gradient(90deg, #38bdf8, #818cf8, #e879f9);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.4rem;
+}
+.hero p { color: #94a3b8; font-size: 1.05rem; line-height: 1.7; margin: 0; }
+
+/* ── Feature cards ── */
+.cards { display: flex; gap: 1rem; margin-bottom: 1.8rem; flex-wrap: wrap; }
+.card {
+    flex: 1; min-width: 200px;
+    background: #161b22;
+    border: 1px solid #30363d;
+    border-radius: 12px;
+    padding: 1.2rem 1.4rem;
+}
+.card-icon { font-size: 1.6rem; margin-bottom: 0.5rem; }
+.card-title { color: #e2e8f0; font-weight: 700; font-size: 0.95rem; margin-bottom: 0.3rem; }
+.card-desc { color: #64748b; font-size: 0.83rem; line-height: 1.5; }
+
+/* ── Upload zone ── */
+.upload-box {
+    background: #0d1117;
+    border: 2px dashed #38bdf8;
+    border-radius: 12px;
+    padding: 2rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+.upload-box h3 { color: #38bdf8; margin-bottom: 0.3rem; }
+.upload-box p  { color: #64748b; font-size: 0.88rem; margin: 0; }
+
+/* ── Section headings ── */
+.section-label {
+    color: #94a3b8;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin: 1.5rem 0 0.6rem;
+    border-left: 3px solid #38bdf8;
+    padding-left: 0.6rem;
+}
+
+/* ── Metric pills ── */
+.pill {
+    display: inline-block;
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 999px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin-right: 0.4rem;
+}
+</style>
+"""
+
 def run_streamlit() -> None:
-    st.set_page_config(layout="wide", page_title="Market Regime Detection Engine")
-    st.title("Market Regime Detection Engine")
-    st.caption("Regime detection using Hidden Markov Models and K-Means clustering.")
+    st.set_page_config(
+        layout="wide",
+        page_title="Market Regime Detection Engine",
+        page_icon="📈",
+    )
+    st.markdown(HERO_CSS, unsafe_allow_html=True)
 
-    # ── Sidebar ──────────────────────────────────────────────────────────────
+    # ── Hero banner ───────────────────────────────────────────────────────────
+    st.markdown("""
+    <div class="hero">
+        <h1>📈 Market Regime Detection Engine</h1>
+        <p>
+            Financial markets cycle through distinct behavioural states — trending bull runs,
+            high-volatility crashes, and quiet consolidation phases. This engine automatically
+            identifies those hidden regimes in any price series using two complementary
+            machine-learning models, giving you a quantitative edge in risk management,
+            strategy switching, and portfolio allocation.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ── Feature cards ─────────────────────────────────────────────────────────
+    st.markdown("""
+    <div class="cards">
+        <div class="card">
+            <div class="card-icon">🔮</div>
+            <div class="card-title">Hidden Markov Model</div>
+            <div class="card-desc">Probabilistic transitions between latent market states — captures regime stickiness and provides soft probabilities per day.</div>
+        </div>
+        <div class="card">
+            <div class="card-icon">🎯</div>
+            <div class="card-title">K-Means Clustering</div>
+            <div class="card-desc">Fast unsupervised clustering on return & volatility features — great for exploratory segmentation with no distributional assumptions.</div>
+        </div>
+        <div class="card">
+            <div class="card-icon">📊</div>
+            <div class="card-title">Regime Analytics</div>
+            <div class="card-desc">Per-regime return, annualised volatility, weight, and transition probabilities surfaced in interactive Plotly charts.</div>
+        </div>
+        <div class="card">
+            <div class="card-icon">🧪</div>
+            <div class="card-title">Synthetic GBM</div>
+            <div class="card-desc">No data? Generate realistic Geometric Brownian Motion price paths to explore the engine before plugging in real tickers.</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # ── Sidebar: model config ─────────────────────────────────────────────────
     with st.sidebar:
-        st.header("Configuration")
+        st.markdown("### ⚙️ Configuration")
+        model_type = st.selectbox("Detection Model", ["HMM", "KMeans"])
         n_states = st.slider("Number of Regimes", 2, 6, 3)
-        window = st.slider("Rolling Window Size", 5, 60, 20)
-        model_type = st.selectbox("Model", ["HMM", "KMeans"])
-
+        window = st.slider("Rolling Window (days)", 5, 60, 20)
         st.markdown("---")
-        st.subheader("Data Source")
+        st.markdown("### 📂 Data Source")
         data_mode = st.radio("Choose Data", ["Synthetic GBM", "Upload CSV"])
 
     # ── Data loading ─────────────────────────────────────────────────────────
     df: Optional[pd.DataFrame] = None
 
     if data_mode == "Upload CSV":
-        uploaded = st.sidebar.file_uploader("Upload CSV (date, close)", type=["csv"])
+        # ── Inline upload zone on main canvas ────────────────────────────────
+        st.markdown('<div class="section-label">Load your data</div>', unsafe_allow_html=True)
+        st.markdown("""
+        <div class="upload-box">
+            <h3>⬆️ Upload a Price CSV</h3>
+            <p>File must contain two columns: <strong>date</strong> (YYYY-MM-DD) and <strong>close</strong> (numeric price)</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        col_up, col_pad = st.columns([1, 1])
+        with col_up:
+            uploaded = st.file_uploader(
+                "Drop your CSV here or click to browse",
+                type=["csv"],
+                label_visibility="collapsed",
+            )
+
+        # Also keep sidebar uploader as a convenience
+        sidebar_uploaded = st.sidebar.file_uploader("Or upload from sidebar", type=["csv"])
+        uploaded = uploaded or sidebar_uploaded
+
         if uploaded:
             try:
                 df = pd.read_csv(uploaded, parse_dates=["date"])
                 if not {"date", "close"}.issubset(df.columns):
-                    st.error("CSV must contain 'date' and 'close' columns.")
+                    st.error("❌ CSV must contain **date** and **close** columns.")
                     st.stop()
+                st.success(f"✅ Loaded **{len(df):,}** rows from `{uploaded.name}`")
             except Exception as e:
-                st.error(f"Failed to parse CSV: {e}")
+                st.error(f"❌ Failed to parse CSV: {e}")
                 st.stop()
-    else:
-        with st.sidebar:
-            st.write("GBM Parameters:")
-            start_price = st.number_input("Start Price", 1, 10_000, 100)
-            mu = st.number_input("Drift (mu)", 0.0, 1.0, 0.08, step=0.01)
-            sigma = st.number_input("Volatility (sigma)", 0.01, 1.0, 0.2, step=0.01)
-            days = st.number_input("Days", 50, 2_000, 500)
-            seed = st.number_input("Random Seed", 0, 9_999, 42)
-        df = generate_gbm(start_price, mu, sigma, int(days), int(seed))
+        else:
+            st.info("👆 Upload a CSV above to get started, or switch to **Synthetic GBM** in the sidebar.")
+            st.stop()
 
-    if df is None:
-        st.info("Upload a CSV or configure synthetic GBM data in the sidebar.")
-        st.stop()
+    else:  # Synthetic GBM
+        st.markdown('<div class="section-label">Synthetic GBM parameters</div>', unsafe_allow_html=True)
+        with st.sidebar:
+            start_price = st.number_input("Start Price ($)", 1, 10_000, 100)
+            mu    = st.number_input("Annual Drift (μ)", 0.0, 1.0, 0.08, step=0.01)
+            sigma = st.number_input("Annual Volatility (σ)", 0.01, 1.0, 0.2, step=0.01)
+            days  = st.number_input("Trading Days", 50, 2_000, 500)
+            seed  = st.number_input("Random Seed", 0, 9_999, 42)
+        df = generate_gbm(start_price, mu, sigma, int(days), int(seed))
+        st.markdown(
+            f'<span class="pill">🏦 Start price ${start_price}</span>'
+            f'<span class="pill">📈 μ = {mu:.0%}</span>'
+            f'<span class="pill">〰️ σ = {sigma:.0%}</span>'
+            f'<span class="pill">📅 {int(days)} days</span>',
+            unsafe_allow_html=True,
+        )
 
     df, features = compute_features(df, window)
 
     # ── Model fitting ─────────────────────────────────────────────────────────
     transmat: Optional[np.ndarray] = None
+    st.markdown('<div class="section-label">Model output</div>', unsafe_allow_html=True)
 
     if model_type == "HMM":
         labels, regime_probs, transmat, means, covars = fit_hmm(features, n_states)
-        with st.expander("HMM Model Parameters", expanded=False):
+        with st.expander("🔮 HMM Model Parameters", expanded=False):
             col1, col2 = st.columns(2)
-            col1.write("**State Means**")
+            col1.markdown("**State Means**")
             col1.dataframe(pd.DataFrame(means, columns=["Mean Return", "Volatility"]))
-            col2.write("**State Std Devs**")
+            col2.markdown("**State Std Devs**")
             col2.dataframe(pd.DataFrame(covars, columns=["Return Std", "Vol Std"]))
-            st.write("**Transition Matrix**")
+            st.markdown("**Transition Matrix**")
             st.dataframe(
                 pd.DataFrame(
                     transmat,
-                    columns=[f"To {i}" for i in range(n_states)],
-                    index=[f"From {i}" for i in range(n_states)],
-                ).style.format("{:.3f}")
+                    columns=[f"→ Regime {i}" for i in range(n_states)],
+                    index=[f"Regime {i}" for i in range(n_states)],
+                ).style.format("{:.3f}").background_gradient(cmap="Blues")
             )
     else:
         labels, centers = fit_kmeans(features, n_states)
         regime_probs = np.eye(n_states)[labels]
-        with st.expander("KMeans Cluster Centers", expanded=False):
+        with st.expander("🎯 KMeans Cluster Centers", expanded=False):
             st.dataframe(pd.DataFrame(centers, columns=["Mean Return", "Volatility"]))
 
     # ── Regime stats ──────────────────────────────────────────────────────────
-    st.subheader("Regime Statistics")
+    st.markdown('<div class="section-label">Regime statistics</div>', unsafe_allow_html=True)
+    stats = compute_regime_stats(df, labels, n_states)
     st.dataframe(
-        compute_regime_stats(df, labels, n_states).style.format(
-            {"Mean Return": "{:.4f}", "Volatility (Ann.)": "{:.4f}", "Weight (%)": "{:.1f}"}
-        ),
+        stats.style
+            .format({"Mean Return": "{:.4f}", "Volatility (Ann.)": "{:.4f}", "Weight (%)": "{:.1f}"})
+            .background_gradient(subset=["Volatility (Ann.)"], cmap="RdYlGn_r")
+            .background_gradient(subset=["Mean Return"], cmap="RdYlGn"),
         use_container_width=True,
     )
 
     # ── Charts ────────────────────────────────────────────────────────────────
-    st.subheader("Visualizations")
-    st.plotly_chart(chart_price(df, labels), use_container_width=True)
-    st.plotly_chart(chart_regime_probs(df, regime_probs), use_container_width=True)
+    st.markdown('<div class="section-label">Visualizations</div>', unsafe_allow_html=True)
+
+    chart_cfg = dict(
+        paper_bgcolor="#0d1117",
+        plot_bgcolor="#0d1117",
+        font_color="#94a3b8",
+        xaxis=dict(gridcolor="#1e293b"),
+        yaxis=dict(gridcolor="#1e293b"),
+    )
+
+    fig_price = chart_price(df, labels)
+    fig_price.update_layout(**chart_cfg)
+    st.plotly_chart(fig_price, use_container_width=True)
+
+    fig_probs = chart_regime_probs(df, regime_probs)
+    fig_probs.update_layout(**chart_cfg)
+    st.plotly_chart(fig_probs, use_container_width=True)
+
     if transmat is not None:
-        st.plotly_chart(chart_transition_matrix(transmat), use_container_width=True)
+        fig_tm = chart_transition_matrix(transmat)
+        fig_tm.update_layout(paper_bgcolor="#0d1117", font_color="#94a3b8")
+        st.plotly_chart(fig_tm, use_container_width=True)
 
 
 # ── Entry Point ───────────────────────────────────────────────────────────────
