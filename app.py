@@ -209,7 +209,6 @@ def main():
     stats = compute_regime_stats(df, labels, args.n_states)
     print("Regime Statistics:\n", stats)
 
-    # Plots
     plot_regimes(df, labels)
     plot_regime_probs(df, regime_probs)
     if transmat is not None:
