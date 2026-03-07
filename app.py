@@ -151,7 +151,7 @@ def run_streamlit():
     st.write("Regime Statistics:")
     st.dataframe(stats)
 
-    # Plots
+    # Plots 
     st.subheader("Visualizations")
     import plotly.express as px
     import plotly.graph_objects as go
