@@ -169,7 +169,6 @@ def run_streamlit():
         fig3 = px.imshow(transmat, text_auto='.2f', color_continuous_scale='Blues', title="Transition Matrix")
         st.plotly_chart(fig3, use_container_width=True)
 
-# Main 
 def main():
     import streamlit.runtime.scriptrunner as st_runtime
     if st_runtime.get_script_run_ctx() is not None:
