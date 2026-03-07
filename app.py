@@ -158,13 +158,13 @@ def run_streamlit():
     # Price chart colored by regime
     fig = px.scatter(df, x='date', y='close', color=labels.astype(str), title="Price Chart by Regime", color_discrete_sequence=px.colors.qualitative.Set1)
     st.plotly_chart(fig, use_container_width=True)
-    # Regime probability plot
+
     fig2 = go.Figure()
     for i in range(regime_probs.shape[1]):
         fig2.add_trace(go.Scatter(x=df['date'], y=regime_probs[:,i], mode='lines', name=f'Regime {i}'))
     fig2.update_layout(title="Regime Probabilities", xaxis_title="Date", yaxis_title="Probability")
     st.plotly_chart(fig2, use_container_width=True)
-    # Transition matrix heatmap
+
     if transmat is not None:
         fig3 = px.imshow(transmat, text_auto='.2f', color_continuous_scale='Blues', title="Transition Matrix")
         st.plotly_chart(fig3, use_container_width=True)
@@ -207,7 +207,7 @@ def main():
 
     stats = compute_regime_stats(df, labels, args.n_states)
     print("Regime Statistics:\n", stats)
-
+    
     plot_regimes(df, labels)
     plot_regime_probs(df, regime_probs)
     if transmat is not None:
